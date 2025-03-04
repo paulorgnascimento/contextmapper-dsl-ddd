@@ -1,0 +1,215 @@
+
+ContextMap AgilePMContextMap {
+    type = SYSTEM_LANDSCAPE
+    state = TO_BE
+
+    contains AgileProjectManagementContext
+    contains IdentityAccessContext
+    contains CollaborationContext
+    contains BillingContext
+    contains SupportContext
+    contains ResourceManagementContext
+
+    IdentityAccessContext [U,OHS,PL] -> [D,ACL] AgileProjectManagementContext {
+        implementationTechnology = "RESTful HTTP"
+        exposedAggregates = Tenants
+    }
+
+    CollaborationContext [U,OHS,PL] -> [D,ACL] AgileProjectManagementContext {
+        implementationTechnology = "RESTful HTTP"
+        exposedAggregates = Forums
+    }
+
+    BillingContext [U,OHS,PL] -> [D,CF] AgileProjectManagementContext {
+        implementationTechnology = "RESTful HTTP"
+        exposedAggregates = Payments
+    }
+
+    AgileProjectManagementContext [U,OHS,PL] -> [D,CF] SupportContext {
+        implementationTechnology = "RESTful HTTP"
+        exposedAggregates = Products
+    }
+
+    AgileProjectManagementContext [U,OHS,PL] -> [D,CF] ResourceManagementContext {
+        implementationTechnology = "RESTful HTTP"
+        exposedAggregates = Teams
+    }
+}
+
+BoundedContext AgileProjectManagementContext {
+    type = FEATURE
+    domainVisionStatement = "Core domain context for Scrum-based agile project management"
+
+    Aggregate Products {
+        Entity Product {
+            aggregateRoot
+            String productId
+            String name
+            String description_
+            List<BacklogItem> backlogItems
+            List<Release> releases
+            List<Sprint> sprints
+        }
+        Entity BacklogItem {
+            String backlogItemId
+            String title
+            List<Task> tasks
+        }
+        Entity Task {
+            String taskId
+            String description_
+            List<EstimationLogEntry> estimationLog
+        }
+        Entity EstimationLogEntry {
+            String entryId
+            int hours
+            String note
+        }
+        Entity Release {
+            String releaseId
+            String name
+            Date releaseDate
+            List<String> scheduledBacklogItemIds
+        }
+        Entity Sprint {
+            String sprintId
+            int sprintNumber
+            Date startDate
+            Date endDate
+            List<String> committedBacklogItemIds
+        }
+        Entity Discussion {
+            String discussionId
+        }
+    }
+
+    Aggregate Teams {
+        Entity Team {
+            aggregateRoot
+            String teamId
+            String productId
+            List<TeamMember> members
+        }
+        Entity TeamMember {
+            String userId
+            String name
+        }
+    }
+}
+
+BoundedContext IdentityAccessContext {
+    type = SYSTEM
+    domainVisionStatement = "Manages multi-tenant identity and access (Tenants, Users, Permissions)"
+
+    Aggregate Tenants {
+        Entity Tenant {
+            aggregateRoot
+            String tenantId
+            String name
+            List<User> users
+        }
+        Entity User {
+            String userId
+            String username
+            String email_
+            List<Permission> permissions
+        }
+        Entity Permission {
+            String permissionName
+        }
+    }
+}
+
+BoundedContext CollaborationContext {
+    type = SYSTEM
+    domainVisionStatement = "Provides collaboration tools (forums, discussions, calendars)"
+
+    Aggregate Forums {
+        Entity Forum {
+            aggregateRoot
+            String forumId
+            String title
+            List<Discussion> discussions
+        }
+        Entity Discussion {
+            String discussionId
+            String topic
+            List<Post> posts
+        }
+        Entity Post {
+            String postId
+            String content
+            String authorUserId
+            Date timestamp
+        }
+    }
+
+    Aggregate Calendars {
+        Entity Calendar {
+            aggregateRoot
+            String calendarId
+            List<CalendarEntry> entries
+        }
+        Entity CalendarEntry {
+            String entryId
+            Date date
+            String description_
+            String entryType
+        }
+    }
+}
+
+BoundedContext BillingContext {
+    type = FEATURE
+    domainVisionStatement = "Handles billing and subscription payments for tenant accounts"
+
+    Aggregate Payments {
+        Entity Account {
+            aggregateRoot
+            String accountId   
+            String planTier
+            List<Payment> paymentHistory
+        }
+        Entity Payment {
+            String paymentId
+            Date paidOn
+            double amount
+            String details
+        }
+    }
+}
+
+BoundedContext SupportContext {
+    type = FEATURE
+    domainVisionStatement = "Manages customer support tickets and their linkage to the project backlog"
+
+    Aggregate SupportCases {
+        Entity SupportCase {
+            aggregateRoot
+            String caseId
+            String description_
+            String status
+            String reportedByUserId
+            String relatedBacklogItemId 
+        }
+    }
+}
+
+BoundedContext ResourceManagementContext {
+    type = FEATURE
+    domainVisionStatement = "Manages team member schedules, utilization and availability"
+
+    Aggregate Schedules {
+        Entity TeamMemberSchedule {
+            aggregateRoot
+            String scheduleId
+            String teamMemberId
+            List<ScheduleEntry> entries
+        }
+        Entity ScheduleEntry {
+            String entryId
+            Date date
+            int hoursAllocated
+        }
+    }
+}
